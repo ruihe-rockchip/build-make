@@ -715,6 +715,10 @@ endif
 # This needs to be before the systemimage rules, because it adds to
 # ALL_DEFAULT_INSTALLED_MODULES, which those use to pick which files
 # go into the systemimage.
+INSTALLED_LOADER_TARGET := $(strip $(wildcard $(TARGET_DEVICE_DIR)/ota/loader/RK*Loader*.bin))
+INSTALLED_PARAMETER_TARGET := $(strip $(wildcard $(TARGET_DEVICE_DIR)/ota/parameter/parameter*))
+INSTALLED_UBOOT_TARGET := $(strip $(wildcard u-boot/uboot.img))
+INSTALLED_TRUST_TARGET := $(strip $(wildcard u-boot/trust.img))
 
 .PHONY: notice_files
 
@@ -2260,6 +2264,28 @@ endif
 	$(hide) cp $(SELINUX_FC) $(zip_root)/META/file_contexts.bin
 	$(hide) echo "recovery_api_version=$(PRIVATE_RECOVERY_API_VERSION)" > $(zip_root)/META/misc_info.txt
 	$(hide) echo "fstab_version=$(PRIVATE_RECOVERY_FSTAB_VERSION)" >> $(zip_root)/META/misc_info.txt
+ifeq ($(INSTALLED_LOADER_TARGET),)
+	$(info No RK Loader for TARGET_DEVICE $(TARGET_DEVICE) to otapackage)
+else
+	$(info cp RK Loader:$(TARGET_DEVICE) to otapackage)
+	$(hide) cp $(INSTALLED_LOADER_TARGET) $(zip_root)/RKLoader.bin
+endif
+ifeq ($(INSTALLED_UBOOT_TARGET),)
+	$(info No uboot for uboot/uboot.img to otapackage)
+else
+	$(hide) cp $(INSTALLED_UBOOT_TARGET) $(zip_root)/uboot.img
+endif
+
+ifeq ($(INSTALLED_TRUST_TARGET),)
+	$(info No trust for uboot/trust.img to otapackage)
+else
+	$(hide) cp $(INSTALLED_TRUST_TARGET) $(zip_root)/trust.img
+endif
+ifdef TARGET_PREBUILT_RESOURCE
+	$(info package add resource.img to BOOT and RECOVERY)
+	$(hide) cp $(TARGET_PREBUILT_RESOURCE) $(zip_root)/BOOT/resource.img
+	$(hide) cp $(TARGET_PREBUILT_RESOURCE) $(zip_root)/RECOVERY/resource.img
+endif
 ifdef BOARD_FLASH_BLOCK_SIZE
 	$(hide) echo "blocksize=$(BOARD_FLASH_BLOCK_SIZE)" >> $(zip_root)/META/misc_info.txt
 endif
