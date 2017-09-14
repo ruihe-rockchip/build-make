@@ -1964,6 +1964,7 @@ OTATOOLS :=  $(HOST_OUT_EXECUTABLES)/minigzip \
   $(HOST_OUT_EXECUTABLES)/zipalign \
   $(HOST_OUT_EXECUTABLES)/bsdiff \
   $(HOST_OUT_EXECUTABLES)/imgdiff \
+  $(HOST_OUT_EXECUTABLES)/mkparameter \
   $(HOST_OUT_JAVA_LIBRARIES)/dumpkey.jar \
   $(HOST_OUT_JAVA_LIBRARIES)/signapk.jar \
   $(HOST_OUT_JAVA_LIBRARIES)/BootSignature.jar \
@@ -2150,6 +2151,7 @@ endef
 $(BUILT_TARGET_FILES_PACKAGE): \
 		$(INSTALLED_BOOTIMAGE_TARGET) \
 		$(INSTALLED_RADIOIMAGE_TARGET) \
+		$(INSTALLED_PARAMETER_TARGET) \
 		$(INSTALLED_RECOVERYIMAGE_TARGET) \
 		$(FULL_SYSTEMIMAGE_DEPS) \
 		$(INSTALLED_USERDATAIMAGE_TARGET) \
@@ -2286,6 +2288,15 @@ ifdef TARGET_PREBUILT_RESOURCE
 	$(hide) cp $(TARGET_PREBUILT_RESOURCE) $(zip_root)/BOOT/resource.img
 	$(hide) cp $(TARGET_PREBUILT_RESOURCE) $(zip_root)/RECOVERY/resource.img
 endif
+
+ifeq ($(INSTALLED_PARAMETER_TARGET),)
+	$(info No parameter for TARGET_DEVICE $(TARGET_DEVICE) to otapackage)
+else
+	$(hide) rm -rf $(zip_root)/PARAMETER
+	$(hide) mkdir -p $(zip_root)/PARAMETER
+	$(hide) $(HOST_OUT_EXECUTABLES)/mkparameter '$(INSTALLED_PARAMETER_TARGET)' $(zip_root)/PARAMETER/parameter
+endif
+
 ifdef BOARD_FLASH_BLOCK_SIZE
 	$(hide) echo "blocksize=$(BOARD_FLASH_BLOCK_SIZE)" >> $(zip_root)/META/misc_info.txt
 endif

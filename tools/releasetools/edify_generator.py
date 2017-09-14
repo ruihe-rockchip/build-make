@@ -318,6 +318,15 @@ class EdifyGenerator(object):
     self.script.append('package_extract_file("RKLoader.bin", "/tmp/RKLoader.bin");')
     self.script.append('write_raw_loader_image() || abort("update loader failed.");')
 
+  def WriteRawParameterImage(self, mount_point, fn, mapfn=None):
+    """update parameter"""
+    fstab = self.fstab
+    p_misc = fstab["/misc"]
+    p_parameter = fstab[mount_point]
+    args = {'bcb_dev': p_misc.device, 'parameter_dev': p_parameter.device, 'fn': fn}
+    self.script.append('get_stage("%(bcb_dev)s") == "success" || package_extract_file("%(fn)s", "%(parameter_dev)s") && set_stage("%(bcb_dev)s", "success") && reboot_now("%(bcb_dev)s", "recovery") || abort("update parameter failed.");' % args)
+
+
   def AppendExtra(self, extra):
     """Append text verbatim to the output script."""
     self.script.append(extra)
