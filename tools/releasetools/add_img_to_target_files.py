@@ -218,6 +218,16 @@ def CreateImage(input_dir, info_dict, what, output_file, block_list=None):
                                 image_props, output_file.name)
   assert succ, "build " + what + ".img image failed"
 
+  if what == "system":
+    img_out = os.path.join(os.environ["OUT"], "system.img")
+    print ("get system.img from ota")
+    shutil.copyfile(output_file.name, img_out)
+
+  if what == "vendor":
+    print ("get vendor.img from ota")
+    img_out = os.path.join(os.environ["OUT"], "vendor.img")
+    shutil.copyfile(output_file.name, img_out)
+
   output_file.Write()
   if block_list:
     block_list.Write()
