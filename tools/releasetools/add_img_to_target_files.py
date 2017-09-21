@@ -95,7 +95,7 @@ class OutputFile(object):
 def GetCareMap(which, imgname):
   """Generate care_map of system (or vendor) partition"""
 
-  assert which in ("system", "vendor")
+  assert which in ("system", "vendor", "oem")
 
   simg = sparse_img.SparseImage(imgname)
   care_map_list = []
@@ -151,6 +151,20 @@ def AddSystemOther(output_zip, prefix="IMAGES/"):
 
   CreateImage(OPTIONS.input_tmp, OPTIONS.info_dict, "system_other", img)
 
+
+def AddOem(output_zip, prefix="IMAGES/"):
+  """Turn the contents of  OEM into a oem image and store in it
+  output_zip."""
+
+  img = OutputFile(output_zip, OPTIONS.input_tmp, prefix, "oem.img")
+  if os.path.exists(img.input_name):
+    print("oem.img already exists in %s, no need to rebuild..." % (prefix,))
+    return img.input_name
+
+  block_list = OutputFile(output_zip, OPTIONS.input_tmp, prefix, "oem.map")
+  CreateImage(OPTIONS.input_tmp, OPTIONS.info_dict, "oem", img,
+              block_list=block_list)
+  return img.name
 
 def AddVendor(output_zip, prefix="IMAGES/"):
   """Turn the contents of VENDOR into a vendor image and store in it
@@ -226,6 +240,11 @@ def CreateImage(input_dir, info_dict, what, output_file, block_list=None):
   if what == "vendor":
     print ("get vendor.img from ota")
     img_out = os.path.join(os.environ["OUT"], "vendor.img")
+    shutil.copyfile(output_file.name, img_out)
+
+  if what == "oem":
+    print ("get oem.img from ota")
+    img_out = os.path.join(os.environ["OUT"], "oem.img")
     shutil.copyfile(output_file.name, img_out)
 
   output_file.Write()
@@ -399,6 +418,7 @@ def AddImagesToTargetFiles(filename):
       sys.exit(1)
 
   has_vendor = os.path.isdir(os.path.join(OPTIONS.input_tmp, "VENDOR"))
+  has_oem = os.path.isdir(os.path.join(OPTIONS.input_tmp, "OEM"))
   has_system_other = os.path.isdir(os.path.join(OPTIONS.input_tmp,
                                                 "SYSTEM_OTHER"))
 
@@ -477,6 +497,9 @@ def AddImagesToTargetFiles(filename):
   if has_vendor:
     banner("vendor")
     vendor_img_path = AddVendor(output_zip)
+  if has_oem:
+    banner("oem")
+    oem_img_path = AddOem(output_zip)
   if has_system_other:
     banner("system_other")
     AddSystemOther(output_zip)

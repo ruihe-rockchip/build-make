@@ -269,7 +269,7 @@ class EdifyGenerator(object):
                           p.device, p.length, p.mount_point))
 
   def WipeBlockDevice(self, partition):
-    if partition not in ("/system", "/vendor"):
+    if partition not in ("/system", "/vendor", "/oem"):
       raise ValueError(("WipeBlockDevice doesn't work on %s\n") % (partition,))
     fstab = self.fstab
     size = self.info.get(partition.lstrip("/") + "_size", None)

@@ -274,6 +274,13 @@ def HasVendorPartition(target_files_zip):
   except KeyError:
     return False
 
+def HasOemPartition(target_files_zip):
+  try:
+    target_files_zip.getinfo("OEM/")
+    return True
+  except KeyError:
+    return False
+
 
 def GetOemProperty(name, oem_props, oem_dict, info_dict):
   if oem_props is not None and name in oem_props:
@@ -298,7 +305,7 @@ def GetImage(which, tmpdir):
   map must already exist in tmpdir.
   """
 
-  assert which in ("system", "vendor")
+  assert which in ("system", "vendor", "oem")
 
   path = os.path.join(tmpdir, "IMAGES", which + ".img")
   mappath = os.path.join(tmpdir, "IMAGES", which + ".map")
@@ -469,6 +476,8 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
     system_progress -= 0.1
   if HasVendorPartition(input_zip):
     system_progress -= 0.1
+  if HasOemPartition(input_zip):
+    system_progress -= 0.1
 
   # Place a copy of file_contexts.bin into the OTA package which will be used
   # by the recovery program.
@@ -498,6 +507,14 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
     vendor_tgt.ResetFileMap()
     vendor_diff = common.BlockDifference("vendor", vendor_tgt)
     vendor_diff.WriteScript(script, output_zip)
+
+  if HasOemPartition(input_zip):
+    script.ShowProgress(0.1, 0)
+
+    oem_tgt = GetImage("oem", OPTIONS.input_tmp)
+    oem_tgt.ResetFileMap()
+    oem_diff = common.BlockDifference("oem", oem_tgt)
+    oem_diff.WriteScript(script, output_zip)
 
   common.CheckSize(boot_img.data, "boot.img", OPTIONS.info_dict)
   common.ZipWriteStr(output_zip, "boot.img", boot_img.data)
@@ -688,6 +705,24 @@ def WriteBlockIncrementalOTAPackage(target_zip, source_zip, output_zip):
   else:
     vendor_diff = None
 
+  if HasOemPartition(target_zip):
+    if not HasOemPartition(source_zip):
+      raise RuntimeError("can't generate incremental that adds /oem")
+    oem_src = GetImage("oem", OPTIONS.source_tmp)
+    oem_tgt = GetImage("oem", OPTIONS.target_tmp)
+
+    # Check first block of oem partition for remount R/W only if
+    # disk type is ext4
+    oem_partition = OPTIONS.source_info_dict["fstab"]["/oem"]
+    check_first_block = oem_partition.fs_type == "ext4"
+    disable_imgdiff = oem_partition.fs_type == "squashfs"
+    oem_diff = common.BlockDifference("oem", oem_tgt, oem_src,
+                                         check_first_block,
+                                         version=blockimgdiff_version,
+                                         disable_imgdiff=disable_imgdiff)
+  else:
+    oem_diff = None
+
   AppendAssertions(script, OPTIONS.target_info_dict, oem_dicts)
   device_specific.IncrementalOTA_Assertions()
 
@@ -779,6 +814,8 @@ else if get_stage("%(bcb_dev)s") != "3/3" then
     size.append(system_diff.required_cache)
   if vendor_diff:
     size.append(vendor_diff.required_cache)
+  if oem_diff:
+    size.append(oem_diff.required_cache)
 
   if updating_boot:
     boot_type, boot_device = common.GetTypeAndDevice(
@@ -824,6 +861,8 @@ else
   system_diff.WriteVerifyScript(script, touched_blocks_only=True)
   if vendor_diff:
     vendor_diff.WriteVerifyScript(script, touched_blocks_only=True)
+  if oem_diff:
+    oem_diff.WriteVerifyScript(script, touched_blocks_only=True)
 
   script.Comment("---- start making changes here ----")
 
@@ -834,6 +873,9 @@ else
 
   if vendor_diff:
     vendor_diff.WriteScript(script, output_zip, progress=0.1)
+
+  if oem_diff:
+    oem_diff.WriteScript(script, output_zip, progress=0.1)
 
   if OPTIONS.two_step:
     common.ZipWriteStr(output_zip, "boot.img", target_boot.data)
@@ -954,6 +996,12 @@ def WriteVerifyPackage(input_zip, output_zip):
     vendor_tgt.ResetFileMap()
     vendor_diff = common.BlockDifference("vendor", vendor_tgt, src=None)
     vendor_diff.WriteStrictVerifyScript(script)
+
+  if HasOemPartition(input_zip):
+    oem_tgt = GetImage("oem", OPTIONS.input_tmp)
+    oem_tgt.ResetFileMap()
+    oem_diff = common.BlockDifference("oem", oem_tgt, src=None)
+    oem_diff.WriteStrictVerifyScript(script)
 
   # Device specific partitions, such as radio, bootloader and etc.
   device_specific.VerifyOTA_Assertions()
