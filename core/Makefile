@@ -1236,6 +1236,7 @@ define build-recoveryimage-target
     $(call build-image-kernel-modules,$(BOARD_RECOVERY_KERNEL_MODULES),$(TARGET_RECOVERY_ROOT_OUT),,$(call intermediates-dir-for,PACKAGING,depmod_recovery)))
   $(hide) rm -f $(TARGET_RECOVERY_ROOT_OUT)/init*.rc
   $(hide) cp -f $(recovery_initrc) $(TARGET_RECOVERY_ROOT_OUT)/
+  $(hide) cp $(TARGET_ROOT_OUT)/init.*usb*.rc $(TARGET_RECOVERY_ROOT_OUT)/
   $(hide) cp $(TARGET_ROOT_OUT)/init.recovery.*.rc $(TARGET_RECOVERY_ROOT_OUT)/ || true # Ignore error when the src file doesn't exist.
   $(hide) mkdir -p $(TARGET_RECOVERY_ROOT_OUT)/res
   $(hide) rm -rf $(TARGET_RECOVERY_ROOT_OUT)/res/*
