@@ -19,7 +19,7 @@
 
 user_variant := $(filter user userdebug,$(TARGET_BUILD_VARIANT))
 ifneq (,$(user_variant))
-    PRODUCT_SUPPORTS_BOOT_SIGNER := true
+    PRODUCT_SUPPORTS_BOOT_SIGNER := false
     PRODUCT_SUPPORTS_VERITY := true
     PRODUCT_SUPPORTS_VERITY_FEC := true
 
