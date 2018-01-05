@@ -2682,7 +2682,7 @@ else
 $(INTERNAL_OTA_PACKAGE_TARGET): $(BRO)
 endif
 
-$(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) \
+$(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) $(HOST_OUT_EXECUTABLES)/mkparameter \
 		build/tools/releasetools/ota_from_target_files
 	@echo "Package OTA: $@"
 	$(hide) PATH=$(foreach p,$(INTERNAL_USERIMAGES_BINARY_PATHS),$(p):)$$PATH MKBOOTIMG=$(MKBOOTIMG) \
