@@ -1128,13 +1128,6 @@ recovery_fstab := $(strip $(wildcard $(TARGET_DEVICE_DIR)/recovery.fstab))
 recovery_fstab := $(if $(wildcard $(recovery_fstab)), $(recovery_fstab),\
 	device/rockchip/common/recovery.fstab)
 endif
-ifdef TARGET_RECOVERY_FSTAB_NAND
-recovery_fstab_nand := $(TARGET_RECOVERY_FSTAB_NAND)
-else
-recovery_fstab_nand := $(strip $(wildcard $(TARGET_DEVICE_DIR)/recovery.nand.fstab))
-recovery_fstab_nand := $(if $(wildcard $(recovery_fstab_nand)), $(recovery_fstab_nand),\
-	device/rockchip/common/recovery.nand.fstab)
-endif
 ifdef TARGET_RECOVERY_WIPE
 recovery_wipe := $(TARGET_RECOVERY_WIPE)
 else
