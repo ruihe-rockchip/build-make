@@ -15,7 +15,6 @@
 #
 
 # We build oem.img only if it's asked for.
-ifneq ($(filter $(MAKECMDGOALS),oem_image),)
 ifndef BOARD_OEMIMAGE_PARTITION_SIZE
 $(error BOARD_OEMIMAGE_PARTITION_SIZE is not set.)
 endif
@@ -42,5 +41,3 @@ $(INSTALLED_OEMIMAGE_TARGET) : $(INTERNAL_USERIMAGES_DEPS) $(INTERNAL_OEMIMAGE_F
 .PHONY: oem_image
 oem_image : $(INSTALLED_OEMIMAGE_TARGET)
 $(call dist-for-goals, oem_image, $(INSTALLED_OEMIMAGE_TARGET))
-
-endif  # oem_image in $(MAKECMDGOALS)
