@@ -383,6 +383,7 @@ def WriteFullOTAPackage(input_zip, output_zip):
   # in the target build.
   script = edify_generator.EdifyGenerator(3, OPTIONS.info_dict)
 
+  hrr_omit_recovery = OPTIONS.info_dict.get("hrr_omit_recovery_image")
   recovery_mount_options = OPTIONS.info_dict.get("recovery_mount_options")
   oem_props = OPTIONS.info_dict.get("oem_fingerprint_properties")
   oem_dicts = None
@@ -408,7 +409,10 @@ def WriteFullOTAPackage(input_zip, output_zip):
       metadata=metadata,
       info_dict=OPTIONS.info_dict)
 
-  assert HasRecoveryPatch(input_zip)
+  if not hrr_omit_recovery:
+    assert HasRecoveryPatch(input_zip)
+  else:
+    HasRecoveryPatch(input_zip)
 
   metadata["ota-type"] = "BLOCK"
 
