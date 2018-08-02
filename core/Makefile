@@ -2437,18 +2437,30 @@ endif
 ifeq ($(INSTALLED_UBOOT_TARGET),)
 	$(info No uboot for uboot/uboot.img to otapackage)
 else
+ifeq ($(AB_OTA_UPDATER),true)
+	$(hide) mkdir -p $(zip_root)/IMAGES
+	$(hide) cp $(INSTALLED_UBOOT_TARGET) $(zip_root)/IMAGES/bootloader.img
+else
 	$(hide) cp $(INSTALLED_UBOOT_TARGET) $(zip_root)/uboot.img
+endif
 endif
 
 ifeq ($(INSTALLED_TRUST_TARGET),)
 	$(info No trust for uboot/trust.img to otapackage)
 else
+ifeq ($(AB_OTA_UPDATER),true)
+	$(hide) mkdir -p $(zip_root)/IMAGES
+	$(hide) cp $(INSTALLED_TRUST_TARGET) $(zip_root)/IMAGES/tos.img
+else
 	$(hide) cp $(INSTALLED_TRUST_TARGET) $(zip_root)/trust.img
+endif
 endif
 ifdef TARGET_PREBUILT_RESOURCE
 	$(info package add resource.img to BOOT and RECOVERY)
 	$(hide) cp $(TARGET_PREBUILT_RESOURCE) $(zip_root)/BOOT/resource.img
+ifneq ($(TARGET_NO_RECOVERY),true)
 	$(hide) cp $(TARGET_PREBUILT_RESOURCE) $(zip_root)/RECOVERY/resource.img
+endif
 endif
 
 ifeq ($(INSTALLED_PARAMETER_TARGET),)
